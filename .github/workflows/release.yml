@@ -1,0 +1,18 @@
+on:
+  push:
+    branches: ["main"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: build
+        run: dotnet build --configuration Release
+      - name: Pack
+        run: dotnet pack --configuration Release --no-build --output .
+      - name: Push
+        run: dotnet nuget push Innowise.Clinic.Shared.?.?.?.nupkg --source https://nuget.pkg.github.com/aleh-kasiankou-innowise/index.json --api-key ${NUGET_TOKEN}
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
