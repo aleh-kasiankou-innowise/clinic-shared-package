@@ -1,6 +1,6 @@
 using Innowise.Clinic.Shared.Exceptions;
 
-namespace Innowise.Clinic.Shared.MassTransit.MessageTypes;
+namespace Innowise.Clinic.Shared.MassTransit.MessageTypes.Requests;
 
 public abstract record ConsistencyCheckResponse(bool DataIsConsistent)
 {

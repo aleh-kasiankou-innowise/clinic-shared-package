@@ -1,4 +1,4 @@
-namespace Innowise.Clinic.Shared.MassTransit.MessageTypes;
+namespace Innowise.Clinic.Shared.MassTransit.MessageTypes.Requests;
 
 public record TimeSlotReservationRequest(Guid DoctorId, DateTime AppointmentStart, DateTime AppointmentEnd);
 
