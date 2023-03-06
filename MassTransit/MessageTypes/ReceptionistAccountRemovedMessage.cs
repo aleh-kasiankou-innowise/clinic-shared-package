@@ -1,3 +1,3 @@
-namespace Innowise.Clinic.Profiles.Services.MassTransitService.MessageTypes;
+namespace Innowise.Clinic.Shared.MassTransit.MessageTypes;
 
 public record ReceptionistAccountRemovedMessage(Guid AccountId);
