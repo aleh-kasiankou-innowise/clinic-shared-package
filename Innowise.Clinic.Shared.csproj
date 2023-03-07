@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.9</Version>
+        <Version>0.0.10</Version>
         <Authors>Aleh Kasiankou</Authors>
         <Company>Innowise</Company>
         <PackageDescription>Package with types shared across a few Innowise.Clinic services</PackageDescription>
@@ -16,6 +16,10 @@
     <ItemGroup>
       <Folder Include="Exceptions" />
       <Folder Include="MassTransit" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     </ItemGroup>
 
 </Project>
