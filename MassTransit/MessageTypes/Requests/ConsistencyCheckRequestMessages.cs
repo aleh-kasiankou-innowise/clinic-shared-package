@@ -11,7 +11,7 @@ public abstract record ConsistencyCheckResponse(bool IsSuccessful, string? FailR
             throw FailReason is null ? new InconsistentDataException() : new InconsistentDataException(FailReason);
         }
     }
-};
+}
 
 public record ProfileExistsAndHasRoleRequest(Guid ProfileId, string Role);
 
