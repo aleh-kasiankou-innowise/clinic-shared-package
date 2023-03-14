@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Innowise.Clinic.Shared.Enums;
 
 public enum OfficeChange
