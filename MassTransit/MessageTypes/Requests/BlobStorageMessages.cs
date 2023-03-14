@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Innowise.Clinic.Shared.MassTransit.MessageTypes.Requests;
 
-public record BlobUploadRequest(IFormFile File, BlobCategory FileCategory);
+public record BlobUploadRequest(IFormFile File, string FileCategory);
 
 public record BlobUploadResponse(bool IsSuccessful, string? FileUrl, string? FailReason);
 
