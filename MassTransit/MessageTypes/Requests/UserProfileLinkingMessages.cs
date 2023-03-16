@@ -1,3 +1,5 @@
+using Innowise.Clinic.Shared.Dto;
+
 namespace Innowise.Clinic.Shared.MassTransit.MessageTypes.Requests;
 
 public record UserProfileLinkingRequest(Guid ProfileId, Guid UserId);
