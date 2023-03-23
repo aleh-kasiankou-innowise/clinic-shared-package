@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Innowise.Clinic.Shared.ControllersAbstractions;
+namespace Innowise.Clinic.Shared.BaseClasses;
 
 [ApiController]
 [Route("[controller]")]
