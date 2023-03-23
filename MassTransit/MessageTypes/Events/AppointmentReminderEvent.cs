@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Innowise.Clinic.Shared.MassTransit.MessageTypes.Events;
 
-public record AppointmentRemindEvent(string PatientFullName, DateTime AppointmentDateTime, string ServiceName,
+public record AppointmentRemindEvent([EmailAddress] string PatientEmail, string PatientFullName, DateTime AppointmentDateTime, string ServiceName,
     string DoctorFullName);
