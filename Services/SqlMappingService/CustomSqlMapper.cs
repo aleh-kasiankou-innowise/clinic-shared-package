@@ -9,10 +9,10 @@ public abstract class CustomSqlMapper : ISqlMapper
     private readonly Dictionary<string, Type> _tableMap = new();
 
     // potentially can immediately map to sql members e.g. instead of productId save product.productId
-    public CustomSqlMapper(Func<Type, string> tableNameMapper, Func<Type,PropertyInfo, string> propertyMapper)
+    public CustomSqlMapper(Func<Type, string> tableNameMapper, Func<Type, PropertyInfo, string> propertyMapper)
     {
         var entities = EntityMappingHelper.GetAllEntities();
-        
+
         foreach (var entity in entities)
         {
             _tableMap.Add(tableNameMapper(entity), entity);
@@ -25,7 +25,7 @@ public abstract class CustomSqlMapper : ISqlMapper
             }
         }
     }
-    
+
     public string GetSqlPropertyName(Type type, PropertyInfo property)
     {
         return _propertyMap
@@ -46,5 +46,16 @@ public abstract class CustomSqlMapper : ISqlMapper
     public Type GetTableType(string tableName)
     {
         return _tableMap[tableName];
+    }
+
+    public Dictionary<PropertyInfo, string> GetPropertyMappings(Type type)
+    {
+        var typeSpecificMappings = new Dictionary<PropertyInfo, string>();
+        foreach (var mapping in _propertyMap.Where(x => x.Key.Value == type))
+        {
+            typeSpecificMappings.Add(mapping.Value, mapping.Key.Key);
+        }
+
+        return typeSpecificMappings;
     }
 }

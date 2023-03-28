@@ -8,4 +8,5 @@ public interface ISqlMapper
     string GetSqlTableName(Type modelType);
     PropertyInfo GetProperty(Type type, string columnName);
     Type GetTableType(string tableName);
+    Dictionary<PropertyInfo, string> GetPropertyMappings(Type type);
 }
