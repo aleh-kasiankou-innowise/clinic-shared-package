@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Innowise.Clinic.Shared.Services.FiltrationService.Abstractions;
 

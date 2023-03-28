@@ -1,18 +1,23 @@
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Innowise.Clinic.Shared.Services.SqlMappingService;
 
-namespace PostgresSQL.ADONET;
+namespace Innowise.Clinic.Shared.Services.FiltrationService;
 
 public class TreeToSqlVisitor
 {
     private readonly StringBuilder _textRepresentation = new();
+    private readonly ISqlMapper _sqlMapper;
     private ParameterWrapping _nextParameterWrapping = ParameterWrapping.Default;
 
-    private static MethodInfo _containsMethodInfo =
+    private static readonly MethodInfo ContainsMethodInfo =
         typeof(string).GetMethods().First(x => x.Name == "Contains" && x.GetParameters().Length == 1);
+
+    public TreeToSqlVisitor(ISqlMapper sqlMapper)
+    {
+        _sqlMapper = sqlMapper;
+    }
 
     public StringBuilder Visit(Expression? node, Type entityType, Dictionary<string, object> parameters)
     {
@@ -54,7 +59,8 @@ public class TreeToSqlVisitor
         throw new NotSupportedException(node.NodeType.ToString());
     }
 
-    private StringBuilder VisitBinaryNode(BinaryExpression expression, Type entityType, Dictionary<string, object> parameters)
+    private StringBuilder VisitBinaryNode(BinaryExpression expression, Type entityType,
+        Dictionary<string, object> parameters)
     {
         string conjunction = "";
         if (expression.NodeType == ExpressionType.AndAlso)
@@ -91,8 +97,9 @@ public class TreeToSqlVisitor
             throw new NotSupportedException(expression.NodeType.ToString());
         }
 
-        
-        return new StringBuilder().Append('(').Append(Visit(expression.Left, entityType, parameters)).Append(conjunction)
+
+        return new StringBuilder().Append('(').Append(Visit(expression.Left, entityType, parameters))
+            .Append(conjunction)
             .Append(Visit(expression.Right, entityType, parameters).Append(')'));
     }
 
@@ -106,7 +113,6 @@ public class TreeToSqlVisitor
         }
         else
         {
-
             object SqlParamValue;
 
             switch (_nextParameterWrapping)
@@ -118,9 +124,10 @@ public class TreeToSqlVisitor
                     SqlParamValue = $"%{((ConstantExpression)expression).Value}%";
                     break;
                 default:
-                    throw new NotSupportedException("Such parametrization scheme is not yet supported: " + _nextParameterWrapping.ToString());
+                    throw new NotSupportedException("Such parametrization scheme is not yet supported: " +
+                                                    _nextParameterWrapping.ToString());
             }
-            
+
             var paramName = $"@p{parameters.Count}";
             sql.Append(paramName);
             parameters.Add(paramName, SqlParamValue);
@@ -130,10 +137,11 @@ public class TreeToSqlVisitor
         return sql;
     }
 
-    private StringBuilder VisitMethodCall(MethodCallExpression expression, Type entityType, Dictionary<string, object> parameters)
+    private StringBuilder VisitMethodCall(MethodCallExpression expression, Type entityType,
+        Dictionary<string, object> parameters)
     {
         var sql = new StringBuilder();
-        if (expression.Method == _containsMethodInfo)
+        if (expression.Method == ContainsMethodInfo)
         {
             _nextParameterWrapping = ParameterWrapping.Contains;
             var property = VisitMemberExpression((MemberExpression)expression.Object, entityType);
@@ -149,7 +157,8 @@ public class TreeToSqlVisitor
     {
         var sql = new StringBuilder();
         var propertyInfo = entityType.GetProperty(expression.Member.Name);
-        sql.Append($"{entityType.GetCustomAttribute<TableAttribute>().Name}.").Append(propertyInfo.GetCustomAttribute<ColumnAttribute>().Name);
+        sql.Append($"{_sqlMapper.GetSqlTableName(entityType)}.")
+            .Append(_sqlMapper.GetSqlPropertyName(entityType, propertyInfo));
         return sql;
     }
 }
