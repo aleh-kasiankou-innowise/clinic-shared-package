@@ -4,9 +4,11 @@ namespace Innowise.Clinic.Shared.Services.SqlMappingService;
 
 public class DefaultMapper : CustomSqlMapper
 {
-   
+    private static readonly Func<Type, string> TableNameMapper = x => x.Name;
+    private static readonly Func<Type, PropertyInfo, string> PropertyMapper = (type, prop) =>
+        prop.Name;
 
-    public DefaultMapper(Func<Type, string> tableNameMapper, Func<Type, PropertyInfo, string> propertyMapper) : base(tableNameMapper, propertyMapper)
+    public DefaultMapper() : base(TableNameMapper, PropertyMapper)
     {
     }
 }
