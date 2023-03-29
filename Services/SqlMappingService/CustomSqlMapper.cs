@@ -21,7 +21,7 @@ public abstract class CustomSqlMapper : ISqlMapper
             _tableMap.Add(tableNameMapper(entity), entity);
             foreach (var property in entity.GetProperties())
             {
-                if (property.PropertyType is not IEntity)
+                if (property.PropertyType.GetInterface(nameof(IEntity)) is null)
                 {
                     var columnName = propertyMapper(entity, property);
                     Console.WriteLine($"Registering property mapping: {property.Name} - {columnName}");
@@ -33,14 +33,35 @@ public abstract class CustomSqlMapper : ISqlMapper
 
     public string GetSqlPropertyName(Type type, PropertyInfo property)
     {
-        return _propertyMap
-            .Single(x => x.Key.Value == type && x.Value == property)
-            .Key.Key;
+        try
+        {
+            return _propertyMap
+                .Single(x => x.Key.Value == type && x.Value == property)
+                .Key.Key;
+        }
+
+        catch (Exception e)
+        {
+            Console.WriteLine("Input data:");
+            Console.WriteLine($"Type: {type.FullName}");
+            Console.WriteLine($"Property: {property.Name}");
+            throw;
+        }
+
     }
 
     public string GetSqlTableName(Type modelType)
     {
-        return _tableMap.Single(x => x.Value == modelType).Key;
+        try
+        {
+            return _tableMap.Single(x => x.Value == modelType).Key;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Input data:");
+            Console.WriteLine($"Type: {modelType.FullName}");
+            throw;
+        }
     }
 
     public PropertyInfo GetProperty(Type type, string columnName)
