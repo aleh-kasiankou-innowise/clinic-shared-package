@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Innowise.Clinic.Shared.Exceptions;
 using Innowise.Clinic.Shared.Services.SqlMappingService;
 
 namespace Innowise.Clinic.Shared.Services.FiltrationService;
@@ -161,9 +162,9 @@ public class TreeToSqlVisitor
     private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType)
     {
         var sql = new StringBuilder();
-        var propertyInfo = entityType.GetProperty(expression.Member.Name) ?? throw new ApplicationException($"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
-        sql.Append($"{_sqlMapper.GetSqlTableName(entityType)}.")
-            .Append(_sqlMapper.GetSqlPropertyName(entityType, propertyInfo));
+        var propertyInfo = entityType.GetProperty(expression.Member.Name) ?? throw new SqlMappingException($"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
+        sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}.")
+            .Append(_sqlMapper.GetSqlPropertyName(entityType, propertyInfo) + "\"");
         return sql;
     }
 }

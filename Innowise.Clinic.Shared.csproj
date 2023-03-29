@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.36</Version>
+        <Version>0.0.37</Version>
         <Authors>Aleh Kasiankou</Authors>
         <Company>Innowise</Company>
         <PackageDescription>Package with types shared across a few Innowise.Clinic services</PackageDescription>
@@ -14,7 +14,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Exceptions" />
       <Folder Include="MassTransit" />
       <Folder Include="Services\PredicateBuilder" />
     </ItemGroup>
