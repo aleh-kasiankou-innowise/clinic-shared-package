@@ -163,8 +163,8 @@ public class TreeToSqlVisitor
     {
         var sql = new StringBuilder();
         var propertyInfo = entityType.GetProperty(expression.Member.Name) ?? throw new SqlMappingException($"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
-        sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".\"")
-            .Append(_sqlMapper.GetSqlPropertyName(entityType, propertyInfo).Append('"'));
+        sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
+            .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
         return sql;
     }
 }
