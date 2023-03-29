@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using FastExpressionCompiler;
 using Innowise.Clinic.Shared.Services.FiltrationService.Abstractions;
 using Innowise.Clinic.Shared.Services.FiltrationService.Attributes;
 using Innowise.Clinic.Shared.Services.PredicateBuilder;
@@ -11,15 +12,10 @@ namespace Innowise.Clinic.Shared.Services.FiltrationService;
 public class FilterResolver<T>
 {
     private ConcurrentDictionary<string, Type> FilterRegistry { get; } = new();
-
-
+    
     public FilterResolver()
     {
-        var filterAssembly = Assembly.GetAssembly(typeof(IEntityFilter<>)) ??
-                             throw new ApplicationException("The assembly with filters does not exist.");
-
-        var filterTypes = filterAssembly
-            .GetTypes()
+        var filterTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
             .Where(x => x.IsSubclassOf(typeof(EntityFilter<T>)) &&
                         x.GetCustomAttribute<DisabledFilterAttribute>() is null);
 
@@ -72,65 +68,16 @@ public class FilterResolver<T>
         return filtrationExpression;
     }
 
-    public StringBuilder ConvertCompoundFilterToSqlWhereClause(ICompoundFilter<T> compoundFilter, FiltrationMode mode)
-    {
-        var sql = new StringBuilder();
-        var conjunction = mode == FiltrationMode.And ? " AND " : " OR ";
-        var sqlStatements = new List<StringBuilder>();
-
-        foreach (var filter in compoundFilter.Filters)
-        {
-            if (FilterRegistry.TryGetValue(filter.Key, out var filterType))
-            {
-                BuildSql(filterType)(filter.Value);
-            }
-            else
-            {
-                Console.WriteLine($"The filter {filter.Key} is not available.");
-                foreach (var availableFilter in FilterRegistry)
-                {
-                    Console.WriteLine("Available filters:");
-                    Console.WriteLine(availableFilter.Key);
-                }
-            }
-        }
-
-        return sql;
-    }
-
     private Func<string, Expression<Func<T, bool>>> BuildExpression(Type filterType)
     {
-        // TODO THIS IS SLOW. NEED IMPROVEMENT
-        // ideas:
-        // use FastCompile
-        // create expressions cache
-        // create response cache
+        // TODO CONDUCT PERFORMANCE BENCHMARK
 
         var filterValueParam = Expression.Parameter(typeof(string), "filterValue");
         var filterInstance = Expression.New(filterType.GetConstructor(new[] { typeof(string) }), filterValueParam);
         var lambda = Expression.Lambda<Func<string, Expression<Func<T, bool>>>>(
             GetMethodInfo(filterInstance, "ToExpression", Type.EmptyTypes), new[] { filterValueParam }
         );
-        return lambda.Compile();
-    }
-
-    private Func<string, (StringBuilder, object)> BuildSql(Type filterType)
-    {
-        // TODO THIS IS SLOW. NEED IMPROVEMENT
-        // ideas:
-        // use FastCompile
-        // create expressions cache
-        // create response cache
-        
-        // TODO REMOVE CODE DUPLICATION
-
-        var filterValueParam = Expression.Parameter(typeof(string), "filterValue");
-        var filterInstance = Expression.New(filterType.GetConstructor(new[] { typeof(string) }), filterValueParam);
-        var lambda = Expression.Lambda<Func<string, (StringBuilder, object)>>(
-            GetMethodInfo(filterInstance, "ToSql", Type.EmptyTypes)
-            , new[] { filterValueParam }
-        );
-        return lambda.Compile();
+        return lambda.CompileFast();
     }
 
     private MethodCallExpression GetMethodInfo(NewExpression instance, string methodName, Type[] types)
