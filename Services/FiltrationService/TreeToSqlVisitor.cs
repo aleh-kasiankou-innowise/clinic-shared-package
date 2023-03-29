@@ -72,6 +72,11 @@ public class TreeToSqlVisitor
             conjunction = " OR ";
         }
 
+        else if(expression.NodeType == ExpressionType.Equal)
+        {
+            conjunction = " = ";
+        }
+
         else if (expression.NodeType == ExpressionType.GreaterThan)
         {
             conjunction = " > ";
