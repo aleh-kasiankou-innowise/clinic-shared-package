@@ -13,14 +13,19 @@ public abstract class CustomSqlMapper : ISqlMapper
     {
         var entities = EntityMappingHelper.GetAllEntities();
 
+        Console.WriteLine("Registered the following models for SQL mapping:");
         foreach (var entity in entities)
         {
+            Console.WriteLine(entity.FullName);
+
             _tableMap.Add(tableNameMapper(entity), entity);
             foreach (var property in entity.GetProperties())
             {
                 if (property.PropertyType is not IEntity)
                 {
-                    _propertyMap.Add(new(propertyMapper(entity, property), entity), property);
+                    var columnName = propertyMapper(entity, property);
+                    Console.WriteLine($"Registering property mapping: {property.Name} - {columnName}");
+                    _propertyMap.Add(new(columnName, entity), property);
                 }
             }
         }
