@@ -50,7 +50,7 @@ public class TreeToSqlVisitor
 
         if (node is MemberExpression memberExpression)
         {
-            return VisitMemberExpression(memberExpression, entityType);
+            return VisitMemberExpression(memberExpression, entityType, parameters);
         }
 
         if (node is MethodCallExpression methodCallExpression)
@@ -132,7 +132,7 @@ public class TreeToSqlVisitor
                     break;
                 default:
                     throw new NotSupportedException("Such parametrization scheme is not yet supported: " +
-                                                    _nextParameterWrapping.ToString());
+                                                    _nextParameterWrapping);
             }
 
             var paramName = $"@p{parameters.Count}";
@@ -151,7 +151,7 @@ public class TreeToSqlVisitor
         if (expression.Method == ContainsMethodInfo)
         {
             _nextParameterWrapping = ParameterWrapping.Contains;
-            var property = VisitMemberExpression((MemberExpression)expression.Object, entityType);
+            var property = VisitMemberExpression((MemberExpression)expression.Object, entityType, parameters);
             var sqlParam = Visit(expression.Arguments[0], entityType, parameters);
             sql.Append($"{property} LIKE ").Append(sqlParam);
             return sql;
@@ -160,7 +160,7 @@ public class TreeToSqlVisitor
         throw new NotSupportedException(expression.Method.ToString());
     }
 
-    private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType)
+    private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType, Dictionary<string, object> parameters)
     {
         var sql = new StringBuilder();
 
@@ -168,9 +168,11 @@ public class TreeToSqlVisitor
         if (expression.Member.MemberType == MemberTypes.Field)
         {
             var fieldAccessValue = Expression.Convert(expression, typeof(object));
-            var getterLambda = Expression.Lambda<Func<object>>(fieldAccessValue);
-            var getter = getterLambda.CompileFast();
-            sql.Append($"'{getter().ToString()}'");
+            var valueGetterLambda = Expression.Lambda<Func<object>>(fieldAccessValue);
+            var valueGetterDelegate = valueGetterLambda.CompileFast();
+            var param = $"@p{parameters.Count}";
+            sql.Append(param);
+            parameters.Add(param, valueGetterDelegate().ToString());
         }
 
         else
