@@ -170,7 +170,7 @@ public class TreeToSqlVisitor
             var fieldAccessValue = Expression.Convert(expression, typeof(object));
             var getterLambda = Expression.Lambda<Func<object>>(fieldAccessValue);
             var getter = getterLambda.CompileFast();
-            return new StringBuilder(getter().ToString());
+            sql.Append($"'{getter().ToString()}'");
         }
 
         else
