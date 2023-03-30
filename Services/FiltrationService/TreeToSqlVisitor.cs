@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using FastExpressionCompiler;
 using Innowise.Clinic.Shared.Exceptions;
 using Innowise.Clinic.Shared.Services.SqlMappingService;
 
@@ -73,7 +74,7 @@ public class TreeToSqlVisitor
             conjunction = " OR ";
         }
 
-        else if(expression.NodeType == ExpressionType.Equal)
+        else if (expression.NodeType == ExpressionType.Equal)
         {
             conjunction = " = ";
         }
@@ -162,9 +163,25 @@ public class TreeToSqlVisitor
     private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType)
     {
         var sql = new StringBuilder();
-        var propertyInfo = entityType.GetProperty(expression.Member.Name) ?? throw new SqlMappingException($"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
-        sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
-            .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
+
+        // TODO FIND A WAY TO AVOID COMPILATION
+        if (expression.Member.MemberType == MemberTypes.Field)
+        {
+            var fieldAccessValue = Expression.Convert(expression, typeof(object));
+            var getterLambda = Expression.Lambda<Func<object>>(fieldAccessValue);
+            var getter = getterLambda.CompileFast();
+            return new StringBuilder(getter().ToString());
+        }
+
+        else
+        {
+            var propertyInfo = entityType.GetProperty(expression.Member.Name) ??
+                               throw new SqlMappingException(
+                                   $"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
+            sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
+                .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
+        }
+        
         return sql;
     }
 }
