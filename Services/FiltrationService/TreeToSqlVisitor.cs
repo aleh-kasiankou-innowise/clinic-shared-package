@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -165,14 +166,17 @@ public class TreeToSqlVisitor
         var sql = new StringBuilder();
 
         // TODO FIND A WAY TO AVOID COMPILATION
+        // TODO FIND A BETTER WAY TO DECIDE WHETHER QUOTATION IS NEEDED
         if (expression.Member.MemberType == MemberTypes.Field)
         {
             var fieldAccessValue = Expression.Convert(expression, typeof(object));
             var valueGetterLambda = Expression.Lambda<Func<object>>(fieldAccessValue);
             var valueGetterDelegate = valueGetterLambda.CompileFast();
             var param = $"@p{parameters.Count}";
+            var paramValue = valueGetterDelegate().ToString();
+            var isNumeric = decimal.TryParse(paramValue, out _);
             sql.Append(param);
-            parameters.Add(param, valueGetterDelegate().ToString());
+            parameters.Add(param, isNumeric? valueGetterDelegate().ToString() : $"'{paramValue}'");
         }
 
         else

@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.43</Version>
+        <Version>0.0.44</Version>
         <Authors>Aleh Kasiankou</Authors>
         <Company>Innowise</Company>
         <PackageDescription>Package with types shared across a few Innowise.Clinic services</PackageDescription>
