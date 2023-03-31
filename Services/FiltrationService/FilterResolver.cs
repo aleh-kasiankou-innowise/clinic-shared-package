@@ -11,8 +11,8 @@ namespace Innowise.Clinic.Shared.Services.FiltrationService;
 
 public class FilterResolver<T>
 {
-    private ConcurrentDictionary<string, Type> FilterRegistry { get; } = new();
-    
+    private ConcurrentDictionary<string, Func<string, Expression<Func<T, bool>>>> FilterRegistry { get; } = new();
+
     public FilterResolver()
     {
         var filterTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
@@ -25,11 +25,14 @@ public class FilterResolver<T>
             var filterKey = filter.GetCustomAttribute<FilterKeyAttribute>()?.FilterKey ??
                             throw new ApplicationException($"The filter must have a filter key: {filter.FullName}");
 
-            if (!FilterRegistry.TryAdd(filterKey, filter))
+            var filterInstance = (EntityFilter<T>) Activator.CreateInstance(filter) ??
+                                 throw new ApplicationException(
+                                     $"Filter of type {filter.FullName} cannot be instantiated.");
+            if (!FilterRegistry.TryAdd(filterKey, filterInstance.ToExpression))
             {
                 throw new ApplicationException(
                     $"The filter keys must be unique. " +
-                    $"The {filterKey} is already reserved by class {FilterRegistry[filterKey].FullName}");
+                    $"The {filterKey} is already reserved by class {FilterRegistry[filterKey].Target.GetType().FullName}");
             }
         }
     }
@@ -39,11 +42,9 @@ public class FilterResolver<T>
         var filtrationExpressions = new List<Expression<Func<T, bool>>>();
         foreach (var filter in compoundFilter.Filters)
         {
-            if (FilterRegistry.TryGetValue(filter.Key, out var filterType))
+            if (FilterRegistry.TryGetValue(filter.Key, out var filterExpressionDelegate))
             {
-                var expression = BuildExpression(filterType)(filter.Value);
-                Console.WriteLine(expression);
-                filtrationExpressions.Add(expression);
+                filtrationExpressions.Add(filterExpressionDelegate(filter.Value));
             }
             else
             {
@@ -67,19 +68,7 @@ public class FilterResolver<T>
             : filtrationExpressions[0];
         return filtrationExpression;
     }
-
-    private Func<string, Expression<Func<T, bool>>> BuildExpression(Type filterType)
-    {
-        // TODO CONDUCT PERFORMANCE BENCHMARK
-
-        var filterValueParam = Expression.Parameter(typeof(string), "filterValue");
-        var filterInstance = Expression.New(filterType.GetConstructor(new[] { typeof(string) }), filterValueParam);
-        var lambda = Expression.Lambda<Func<string, Expression<Func<T, bool>>>>(
-            GetMethodInfo(filterInstance, "ToExpression", Type.EmptyTypes), new[] { filterValueParam }
-        );
-        return lambda.CompileFast();
-    }
-
+    
     private MethodCallExpression GetMethodInfo(NewExpression instance, string methodName, Type[] types)
     {
         return Expression.Call(instance, methodName, types);

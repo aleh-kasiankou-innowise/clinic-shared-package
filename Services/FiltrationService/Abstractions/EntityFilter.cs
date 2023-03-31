@@ -12,5 +12,6 @@ public abstract class EntityFilter<T> : IEntityFilter<T>
     }
 
     public string Value { get; }
-    public abstract Expression<Func<T, bool>> ToExpression();
+    public abstract Expression<Func<T, bool>> ToExpression(string value);
+    
 }
