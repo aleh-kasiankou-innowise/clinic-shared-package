@@ -68,9 +68,4 @@ public class FilterResolver<T>
             : filtrationExpressions[0];
         return filtrationExpression;
     }
-    
-    private MethodCallExpression GetMethodInfo(NewExpression instance, string methodName, Type[] types)
-    {
-        return Expression.Call(instance, methodName, types);
-    }
 }
