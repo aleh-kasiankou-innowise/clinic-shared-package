@@ -165,7 +165,7 @@ public class TreeToSqlVisitor
     }
 
     private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType,
-        Dictionary<string, object> parameters)
+        Dictionary<string, object> parameters, bool isNested = false)
     {
         var sql = new StringBuilder();
 
@@ -185,7 +185,14 @@ public class TreeToSqlVisitor
         {
             try
             {
-                // todo try to find whether the property is another table
+                if (expression.Expression is MemberExpression convertedMemberExpression && !isNested)
+                {
+                    var childEntityType = ((PropertyInfo)convertedMemberExpression.Member).PropertyType;
+                    var nestedAccessor = Expression.Property(convertedMemberExpression,
+                        childEntityType?.GetProperty(expression.Member.Name));
+                    return VisitMemberExpression(nestedAccessor, childEntityType, parameters, true);
+                }
+
                 var propertyInfo = entityType.GetProperty(expression.Member.Name) ??
                                    throw new SqlMappingException(
                                        $"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
@@ -195,11 +202,12 @@ public class TreeToSqlVisitor
             catch
             {
                 _logger.LogWarning(
-                    "Cannot visit member expression. Main type: {MainType}, Property {PropertyName}. \n The generated SQL: {GeneratedSql}",
-                    entityType, expression.Member.Name, _textRepresentation);
+                    "Cannot visit member expression. Main type: {MainType}, Property {PropertyName}",
+                    entityType, expression.Member.Name);
                 throw;
             }
         }
+
         return sql;
     }
 }
