@@ -5,6 +5,7 @@ using System.Text;
 using FastExpressionCompiler;
 using Innowise.Clinic.Shared.Exceptions;
 using Innowise.Clinic.Shared.Services.SqlMappingService;
+using Microsoft.Extensions.Logging;
 
 namespace Innowise.Clinic.Shared.Services.FiltrationService;
 
@@ -12,14 +13,16 @@ public class TreeToSqlVisitor
 {
     private readonly StringBuilder _textRepresentation = new();
     private readonly ISqlMapper _sqlMapper;
+    private readonly ILogger<TreeToSqlVisitor> _logger;
     private ParameterWrapping _nextParameterWrapping = ParameterWrapping.Default;
 
     private static readonly MethodInfo ContainsMethodInfo =
         typeof(string).GetMethods().First(x => x.Name == "Contains" && x.GetParameters().Length == 1);
 
-    public TreeToSqlVisitor(ISqlMapper sqlMapper)
+    public TreeToSqlVisitor(ISqlMapper sqlMapper, ILogger<TreeToSqlVisitor> logger)
     {
         _sqlMapper = sqlMapper;
+        _logger = logger;
     }
 
     public StringBuilder Visit(Expression? node, Type entityType, Dictionary<string, object> parameters)
@@ -161,7 +164,8 @@ public class TreeToSqlVisitor
         throw new NotSupportedException(expression.Method.ToString());
     }
 
-    private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType, Dictionary<string, object> parameters)
+    private StringBuilder VisitMemberExpression(MemberExpression expression, Type entityType,
+        Dictionary<string, object> parameters)
     {
         var sql = new StringBuilder();
 
@@ -179,13 +183,23 @@ public class TreeToSqlVisitor
 
         else
         {
-            var propertyInfo = entityType.GetProperty(expression.Member.Name) ??
-                               throw new SqlMappingException(
-                                   $"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
-            sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
-                .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
+            try
+            {
+                // todo try to find whether the property is another table
+                var propertyInfo = entityType.GetProperty(expression.Member.Name) ??
+                                   throw new SqlMappingException(
+                                       $"Type {entityType.FullName} doesn't have property {expression.Member.Name}");
+                sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
+                    .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
+            }
+            catch
+            {
+                _logger.LogWarning(
+                    "Cannot visit member expression. Main type: {MainType}, Property {PropertyName}. \n The generated SQL: {GeneratedSql}",
+                    entityType, expression.Member.Name, _textRepresentation);
+                throw;
+            }
         }
-        
         return sql;
     }
 }
