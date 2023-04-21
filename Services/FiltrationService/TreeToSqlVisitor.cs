@@ -199,11 +199,11 @@ public class TreeToSqlVisitor
                 sql.Append($"\"{_sqlMapper.GetSqlTableName(entityType)}\".")
                     .Append($"\"{_sqlMapper.GetSqlPropertyName(entityType, propertyInfo)}\"");
             }
-            catch
+            catch(Exception e)
             {
                 _logger.LogWarning(
-                    "Cannot visit member expression. Main type: {MainType}, Property {PropertyName}",
-                    entityType, expression.Member.Name);
+                    "Cannot visit member expression. Main type: {MainType}, Property: {PropertyName}, Exception: {Exception}",
+                    entityType, expression.Member.Name, e);
                 throw;
             }
         }
