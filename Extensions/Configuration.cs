@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -34,7 +35,7 @@ public static class Configuration
         });
         return services;
     }
-    
+
     public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
     {
         services.AddSwaggerGen(opts =>
@@ -63,12 +64,18 @@ public static class Configuration
         services.Configure<RouteOptions>(options => { options.LowercaseUrls = true; });
         return services;
     }
-    
+
     public static WebApplicationBuilder ConfigureLogging(this WebApplicationBuilder builder)
     {
         var logger = new LoggerConfiguration()
             .WriteTo.Console()
-            .WriteTo.Elasticsearch("https://elastic:9200")
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+            {
+                AutoRegisterTemplate = true,
+                AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
+                IndexFormat =
+                    $"{Assembly.GetExecutingAssembly().GetName().Name!.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
+            })
             .MinimumLevel.Debug()
             .ReadFrom.Configuration(builder.Configuration)
             .CreateLogger();
