@@ -68,7 +68,7 @@ public static class Configuration
     {
         var logger = new LoggerConfiguration()
             .WriteTo.Console()
-            .WriteTo.Elasticsearch("http://elastic:9200")
+            .WriteTo.Elasticsearch("https://elastic:9200")
             .MinimumLevel.Debug()
             .ReadFrom.Configuration(builder.Configuration)
             .CreateLogger();
