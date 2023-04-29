@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Sinks.Elasticsearch;
 
 namespace Innowise.Clinic.Shared.Extensions;
 
@@ -67,6 +68,7 @@ public static class Configuration
     {
         var logger = new LoggerConfiguration()
             .WriteTo.Console()
+            .WriteTo.Elasticsearch("http://elastic:9200")
             .MinimumLevel.Debug()
             .ReadFrom.Configuration(builder.Configuration)
             .CreateLogger();
