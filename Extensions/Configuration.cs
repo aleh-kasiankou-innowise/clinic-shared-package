@@ -68,16 +68,15 @@ public static class Configuration
     public static WebApplicationBuilder ConfigureLogging(this WebApplicationBuilder builder)
     {
         var logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
             .WriteTo.Console()
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(builder.Configuration["ElasticSearchHost"]))
             {
                 AutoRegisterTemplate = true,
                 AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
                 IndexFormat =
-                    $"{Assembly.GetExecutingAssembly().GetName().Name!.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
+                    $"{Assembly.GetExecutingAssembly().GetName().Name!.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
             })
-            .MinimumLevel.Debug()
-            .ReadFrom.Configuration(builder.Configuration)
             .CreateLogger();
 
         Log.Logger = logger;
