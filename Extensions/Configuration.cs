@@ -1,13 +1,9 @@
-using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Serilog;
-using Serilog.Sinks.Elasticsearch;
 
 namespace Innowise.Clinic.Shared.Extensions;
 
@@ -63,24 +59,5 @@ public static class Configuration
 
         services.Configure<RouteOptions>(options => { options.LowercaseUrls = true; });
         return services;
-    }
-
-    public static WebApplicationBuilder ConfigureLogging(this WebApplicationBuilder builder)
-    {
-        var logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(builder.Configuration["ElasticSearchHost"]))
-            {
-                AutoRegisterTemplate = true,
-                AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
-                IndexFormat =
-                    $"{Assembly.GetExecutingAssembly().GetName().Name!.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
-            })
-            .CreateLogger();
-
-        Log.Logger = logger;
-        builder.Host.UseSerilog(logger);
-        return builder;
     }
 }

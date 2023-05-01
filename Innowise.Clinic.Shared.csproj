@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.58</Version>
+        <Version>0.0.59</Version>
         <Authors>Aleh Kasiankou</Authors>
         <Company>Innowise</Company>
         <PackageDescription>Package with types shared across a few Innowise.Clinic services</PackageDescription>
@@ -22,8 +22,6 @@
       <PackageReference Include="FastExpressionCompiler" Version="3.3.4" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-      <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
-      <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
       <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
